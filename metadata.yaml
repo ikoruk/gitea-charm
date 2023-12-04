@@ -1,0 +1,11 @@
+name: kteam-gitea
+summary: Gitea for the Canonical Kernel Team
+description: |
+  Gitea is a devops platform with Git hosting, CI, and more.
+  This charm deploys it for the Canonical Kernel Team.
+
+title: Gitea for Canonical Kernel Team
+
+requires:
+  database:
+    interface: postgresql_client
