@@ -28,7 +28,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
 
     def __init__(self, *args):
         super().__init__(*args)
-        #self.framework.observe(self.on.start, self._on_start)
+        self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.install, self._on_install)
 
         # Requires PostgreSQL DB
@@ -45,14 +45,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
     def _on_start(self, event: ops.StartEvent):
         """Handle start event."""
 
-        self.unit.status = ops.MaintenanceStatus("Starting Gitea")
-
-        self.unit.set_ports(3000)
-
-        # TODO: handle failure
-        self._restart_gitea()
-
-        self.unit.status = ops.ActiveStatus()
+        self.unit.status = ops.WaitingStatus("awaiting postgresql db")
 
     def _install_template(self, name: str, install_path: str, mode: int, 
                           owner: str = "root:git", **kwargs):
