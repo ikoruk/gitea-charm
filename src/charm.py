@@ -42,6 +42,9 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         else:
             systemd.service_restart("kteam-gitea")
 
+        # Open port 3000/tcp for Gitea web access
+        self.unit.set_ports(3000)
+
     def _on_start(self, event: ops.StartEvent):
         """Handle start event."""
 
