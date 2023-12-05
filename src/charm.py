@@ -68,7 +68,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
 
         # Install generated app.ini config
         if not event.username or not event.password or not event.endpoints:
-            os.unit.status = ops.ErrorStatus("Failed to configure database")
+            self.unit.status = ops.ErrorStatus("Failed to configure database")
         else:
             self._install_template("app.ini.j2", "/etc/gitea/app.ini", 0o660,
                                    username=event.username,
@@ -78,6 +78,8 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         # Ensure Gitea is running with latest configuration
         # TODO: handle failure
         self._restart_gitea()
+
+        self.unit.status = ops.ActiveStatus()
     
     def _on_install(self, event: ops.InstallEvent):
         """Handle install event."""
