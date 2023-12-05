@@ -20,6 +20,25 @@ So far this charm:
 - Installs required directories and systemd service.
 - Installs the configuration from KERNTT-691 with database values set as required to work with the postgresql charm.
 
+## Building and deploying
+
+1. Build charm
+```shell
+git clone https://kernel.ubuntu.com/gitea/tnt/gitea-charm.git
+cd gitea-charm
+charmcraft pack
+```
+
+2. Deploy charm
+```shell
+juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm
+```
+
+3. Integrate postgresql
+```shell
+juju integrate postgresql kteam-gitea
+```
+
 ## Other resources
 
 <!-- If your charm is documented somewhere else other than Charmhub, provide a link separately. -->
