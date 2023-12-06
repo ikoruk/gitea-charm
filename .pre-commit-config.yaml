@@ -1,0 +1,27 @@
+# Whitelist files as we modernize them
+# This is a regular expression
+# e.g. lib/openstack.py | tests/test_utils.py
+files: >
+  (?x)^(
+  )$
+
+# When referencing a remote remote, use the commit hash instead of the
+# git tag. A git tag can be moved at any time which may introduce
+# unexpected changes.
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 9db230353b823e61e76b88bf2272329e3ad32c3a # tag: v0.0.254
+    hooks:
+      - id: ruff
+  - repo: https://github.com/psf/black
+    rev: b0d1fba7ac3be53c71fb0d3211d911e629f8aecb # tag: 23.1.0
+    hooks:
+      - name: black
+        id: black
+  - repo: local
+    hooks:
+    -   id: tests
+        name: tests
+        entry: ./run-unittests.sh
+        language: system
+        types: [python]
