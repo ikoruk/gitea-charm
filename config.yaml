@@ -1,0 +1,28 @@
+options:
+  gitea-server-port:
+    default: 3000
+    description: Port on which Gitea web is available
+    type: int
+
+  gitea-oauth2-jwt-secret:
+    description: Config for oauth2.JWT_SECRET
+    type: string
+
+  gitea-proxy-url:
+    default: 'http://squid.internal:3128'
+    description: Config for proxy.PROXY_URL
+    type: string
+
+  gitea-proxy-hosts:
+    default: 'kernel.org, github.com, *.github.com, launchpad.net, *.launchpad.net'
+    description: Config for proxy.PROXY_HOSTS
+    type: string
+
+  gitea-storage-dir:
+    default: '/data/gitea-storage'
+    description: Storage directory for Gitea
+    type: string
+
+  gitea-metrics-token:
+    description: Config for metrics.TOKEN
+    type: string

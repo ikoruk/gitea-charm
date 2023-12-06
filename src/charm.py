@@ -20,6 +20,8 @@ from charms.operator_libs_linux.v0 import (
     systemd
 )
 
+from config import GiteaConfig, GiteaConfigError
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,20 +32,29 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         super().__init__(*args)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.install, self._on_install)
+        self.framework.observe(self.on.config_changed, self._on_config_changed)
+
+        # Object for write-only Gitea configuration
+        self._gitea_config = GiteaConfig('/etc/gitea/app.ini')
 
         # Requires PostgreSQL DB
         self.database = DatabaseRequires(self, relation_name="database", database_name="giteadb")
         self.framework.observe(self.database.on.database_created, self._on_database_created)
 
-    def _restart_gitea(self):
-        """Start Gitea"""
-        if not systemd.service_running("kteam-gitea"):
-            systemd.service_start("kteam-gitea")
-        else:
-            systemd.service_restart("kteam-gitea")
+    def _start_gitea(self):
+        """Start Gitea service"""
+        logger.info("Starting Gitea service...")
+        systemd.service_start("kteam-gitea")
+        logger.info("Gitea service started.")
 
-        # Open port 3000/tcp for Gitea web access
-        self.unit.set_ports(3000)
+    def _stop_gitea(self):
+        """Stop Gitea service"""
+        logger.info("Stopping Gitea service...")
+        systemd.service_stop("kteam-gitea")
+        logger.info("Gitea service stopped.")
+
+    def _gitea_running(self):
+        return systemd.service_running("kteam-gitea")
 
     def _on_start(self, event: ops.StartEvent):
         """Handle start event."""
@@ -71,20 +82,45 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             self.unit.status = ops.ErrorStatus("Failed to configure database")
             return
 
-        self._install_template("app.ini.j2", "/etc/gitea/app.ini", 0o660,
-                                username=event.username,
-                                password=event.password,
-                                host=event.endpoints)
+        self._gitea_config.load()
+        self._gitea_config.set_db_config(event.username, event.password,
+                                         event.endpoints)
+        self._gitea_config.save()
 
-        # Ensure Gitea is running with latest configuration
+        # Start Gitea with new DB configuration
         # TODO: handle failure
-        self._restart_gitea()
+        self._start_gitea()
 
         self.unit.status = ops.ActiveStatus()
     
+    def _on_config_changed(self, event: ops.ConfigChangedEvent):
+        restart = False
+        if self._gitea_running():
+            self._stop_gitea()
+            restart = True
+
+        # Load, apply changes, and save config.
+        self._gitea_config.load()
+        try:
+            self._gitea_config.apply(self.config)
+        except GiteaConfigError as e:
+            self.unit.status = ops.BlockedStatus(e.args)
+        self._gitea_config.save()
+
+        # Restart Gitea with new config
+        if restart:
+            self._start_gitea()
+
+        # Open TCP port for Gitea web access
+        self.unit.set_ports(self.config['gitea-server-port'])
+
+        self.unit.status = ops.ActiveStatus()
+
     def _on_install(self, event: ops.InstallEvent):
         """Handle install event."""
         self.unit.status = ops.MaintenanceStatus("Begin install")
+
+        gitea_storage_dir = self.config['gitea-storage-dir']
         
         # Fetch and verify Gitea
         BIN_URL = "https://dl.gitea.com/gitea/1.20.2/gitea-1.20.2-linux-amd64"
@@ -117,21 +153,22 @@ class KernelTeamGiteaCharm(ops.CharmBase):
                                 "/var/lib/gitea/custom",
                                 "/var/lib/gitea/data",
                                 "/var/lib/gitea/log",
-                                "/data/gitea-storage"])
+                                gitea_storage_dir])
         subprocess.check_output(["chown", "-R", "git:git", 
-                                 "/var/lib/gitea",
-                                 "/data/gitea-storage"])
+                                "/var/lib/gitea",
+                                gitea_storage_dir])
         subprocess.check_output(["chmod", "-R", "750", 
-                                 "/var/lib/gitea",
-                                 "/data/gitea-storage"])
+                                "/var/lib/gitea",
+                                gitea_storage_dir])
         subprocess.check_output(["mkdir", "/etc/gitea"])
         subprocess.check_output(["chown", "root:git", "/etc/gitea"])
         subprocess.check_output(["chmod", "770", "/etc/gitea"])
-
-        # Configuration is installed in _on_database_created
         
         # Install 'gitea' executable
         subprocess.check_output(["cp", BIN_NAME, "/usr/local/bin/gitea"])
+
+        # Configuration is installed in _on_database_created
+        self._install_template("app.ini.j2", "/etc/gitea/app.ini", 0o660, "root:git")
 
         # Create systemd service, disabled until database available.
         self._install_template("kteam-gitea.service.j2", 
