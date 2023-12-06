@@ -1,158 +1,21 @@
 [DEFAULT]
-APP_NAME = Canonical Kernel Team Code Review
-RUN_USER = git
-RUN_MODE = prod
-WORK_PATH = /var/lib/gitea
+APP_NAME =
+RUN_USER =
 
 [server]
-PROTOCOL = http
-DOMAIN = kernel.ubuntu.com
-ROOT_URL = https://kernel.ubuntu.com/gitea
-STATIC_URL_PREFIX = /gitea
-SSH_DOMAIN = 185.125.189.93
-LFS_JWT_SECRET =
 
 [database]
-DB_TYPE = postgres
-SCHEMA =
-SSL_MODE = disable
-CHARSET = utf8
 
 [security]
-INSTALL_LOCK = true
+INSTALL_LOCK = false
 SECRET_KEY =
 INTERNAL_TOKEN =
-PASSWORD_HASH_ALGO = argon2
 
 [camo]
 
 [oauth2]
 ENABLE = true
-JWT_SECRET =
 
 [log]
-MODE = console,file
+MODE = console
 LEVEL = Info
-
-logger.router.MODE=Warn
-[log.file]
-
-[git]
-
-[git.timeout]
-DEFAULT = 720
-CLONE = 720
-PULL = 720
-GC = 720
-
-[service]
-REGISTER_EMAIL_CONFIRM = true
-EMAIL_DOMAIN_ALLOWLIST = *.canonical.com
-ALLOW_ONLY_EXTERNAL_REGISTRATION = true
-ENABLE_NOTIFY_MAIL = true
-ENABLE_TIMETRACKING = false
-DEFAULT_ENABLE_TIMETRACKING = false
-SHOW_REGISTRATION_BUTTON = false
-SHOW_MILESTONES_DASHBOARD_PAGE = false
-
-[repository]
-ROOT = /data/gitea-storage/repos
-MAX_CREATION_LIMIT = 20
-DISABLE_HTTP_GIT = false
-DISABLED_REPO_UNITS = repo.wiki
-DEFAULT_REPO_UNITS = repo.code,repo.releases,repo.issues,repo.pulls,repo.projects,repo.packages,repo.actions
-
-ALLOW_ADOPTION_OF_UNADOPTED_REPOSITORIES = true
-[repository.upload]
-FILE_MAX_SIZE = 30
-
-[repository.pull-request]
-DEFAULT_MERGE_STYLE = rebase
-DEFAULT_MERGE_MESSAGE_OFFICIAL_APPROVERS_ONLY = false
-APPROVER_TRAILER_TOKEN = Acked-by
-APPEND_ATTESTATION_TRAILERS = true
-
-[repository.signing]
-DEFAULT_TRUST_MODEL = committer
-
-[ui]
-THEMES = auto,gitea,arc-green
-AUTHOR = Canonical Kernel Team
-DESCRIPTION = Canonical Kernel Team Code Review
-KEYWORDS = go,git,self-hosted,gitea
-
-[admin]
-DISABLE_REGULAR_ORG_CREATION = true
-
-[openid]
-ENABLE_OPENID_SIGNIN = true
-ENABLE_OPENID_SIGNUP = true
-WHITELISTED_URIS = login.ubuntu.com
-
-[webhook]
-ALLOWED_HOST_LIST = private,loopback
-
-[mailer]
-ENABLED = true
-SMTP_ADDR = smtp-restricted.canonical.com
-SMTP_PORT = 587
-FROM = ckctreview <noreply+ckctreview-bot@canonical.com>
-USER = kernel-ckctreview
-PASSWD = ...
-SEND_AS_PLAIN_TEXT = true
-
-[session]
-PROVIDER = db
-
-[picture]
-AVATAR_UPLOAD_PATH = /data/gitea-storage/avatars
-REPOSITORY_AVATAR_UPLOAD_PATH = /data/gitea-storage/repo-avatars
-
-[attachment]
-ENABLED = true
-PATH = /data/gitea-storage/attachments
-
-[cron.repo_health_check]
-ENABLED = false
-
-[cron.update_checker]
-ENABLED = false
-
-[metrics]
-ENABLED = true
-TOKEN =
-ENABLED_ISSUE_BY_LABEL = true
-ENABLED_ISSUE_BY_REPOSITORY = true
-
-[packages]
-ENABLED = true
-PATH = /data/gitea-storage/packages
-LIMIT_TOTAL_OWNER_COUNT = 30
-LIMIT_TOTAL_OWNER_SIZE = 20GiB
-
-[storage]
-STORAGE_TYPE = local
-[storage.repo-archive]
-STORAGE_TYPE = local
-PATH = /data/gitea-storage/repo-archive
-
-[storage.packages]
-STORAGE_TYPE = local
-PATH = /data/gitea-storage/packages
-
-[proxy]
-PROXY_ENABLED = true
-PROXY_URL = http://squid.internal:3128/
-PROXY_HOSTS = kernel.org, github.com, *.github.com, launchpad.net, *.launchpad.net
-
-[actions]
-ENABLED = true
-DEFAULT_ACTIONS_URL = self
-
-[storage.actions_log]
-STORAGE_TYPE = local
-PATH = /data/gitea-storage/actions_log
-
-[storage.actions_artifacts]
-STORAGE_TYPE = local
-PATH = /data/gitea-storage/actions_artifacts
