@@ -1,0 +1,49 @@
+---
+# Debug:
+# 1) wget http://10.131.201.69/api/packages/tnt/generic/act_runner/0.1.8/act_runner
+# 2) Run
+# act-runner exec --default-actions-url http://10.131.201.69 --image 10.131.201.69/actions/tnt_bionic:latest pull
+name: PR Pre Checks
+
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        run: |
+          env
+      - name: Info
+        run: |
+          lsb_release -a
+          python3 --version
+          pip3 list
+      - name: Clone
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Dependencies
+        run: |
+          pip3 install -r requirements.txt
+      - name: Diff Bot
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/tnt-diff-bot@v1
+        with:
+          syntax: symmetric
+      - name: Lint
+        run: |
+          pre-commit install
+          pre-commit run ruff --all-files
+          pre-commit run black --all-files
+      - name: Sign-off Check
+        uses: actions/tnt-sign-off-check@v1
+      - name: Run Tests
+        run: |
+          python3 -m unittest discover --start-directory tests
