@@ -1,28 +1,608 @@
+---
+
 options:
-  gitea-server-port:
+
+  ###
+  ### [DEFAULT]
+  ###
+  gitea-app-name:
+    default: 'Canonical Kernel Team Code Review'
+    description: DEFAULTS.APP_NAME
+    type: string
+
+  ###
+  ### [server]
+  ###
+  gitea-server-http-port:
     default: 3000
-    description: Port on which Gitea web is available
+    description: HTTP listen port.
     type: int
 
-  gitea-oauth2-jwt-secret:
-    description: Config for oauth2.JWT_SECRET
+  gitea-server-protocol:
+    default: 'http'
+    description: |
+      Gitea web protocol, one of [http, https, http+unix, fcgi, fcgi+unix].
     type: string
 
-  gitea-proxy-url:
-    default: 'http://squid.internal:3128'
-    description: Config for proxy.PROXY_URL
+  gitea-server-domain:
+    default: ''
+    description: Config for server.DOMAIN
     type: string
 
-  gitea-proxy-hosts:
-    default: 'kernel.org, github.com, *.github.com, launchpad.net, *.launchpad.net'
-    description: Config for proxy.PROXY_HOSTS
+  gitea-server-root-url:
+    default: ''
+    description: Config for server.ROOT_URL
     type: string
 
-  gitea-storage-dir:
-    default: '/data/gitea-storage'
-    description: Storage directory for Gitea
+  gitea-server-static-url-prefix:
+    default: ''
+    description: Config for server.STATIC_URL_PREFIX
     type: string
+
+  gitea-server-ssh-domain:
+    default: ''
+    description: Config for server.SSH_DOMAIN
+    type: string
+
+  ###
+  ### [database]
+  ###
+  gitea-database-type:
+    default: 'postgres'
+    description: |
+      Database to use for Gitea. Currently only postgres is supported.
+    type: string
+
+  ###
+  ### [security]
+  ###
+  gitea-security-password-hash-algo:
+    default: 'argon2'
+    description: Password hash algorithm to use for Gitea.
+    type: string
+
+  ###
+  ### [oauth2]
+  ###
+  gitea-oauth2-enable:
+    default: 'true'
+    description: Whether or not to enable Oauth2 for Gitea.
+    type: boolean
+
+  ###
+  ### [log]
+  ###
+  gitea-log-mode:
+    default: 'console,file'
+    description: Log modes to use for Gitea.
+    type: string
+
+  gitea-log-level:
+    default: 'Info'
+    description: Log level for Gitea.
+    type: string
+
+  gitea-log-logger-router-mode:
+    default: 'Warn'
+    description: Log level for Gitea router.
+    type: string
+
+  ###
+  ### [git.timeout]
+  ###
+  gitea-git-timeout-default:
+    default: 720
+    description: Gitea Git operation timeout in seconds.
+    type: int
+
+  gitea-git-timeout-clone:
+    default: 720
+    description: Gitea Git clone timeout in seconds.
+    type: int
+
+  gitea-git-timeout-pull:
+    default: 720
+    description: Gitea Git pull timeout in seconds.
+    type: int
+
+  gitea-git-timeout-gc:
+    default: 720
+    description: Gitea Git GC timeout in seconds.
+    type: int
+
+  ###
+  ### [service]
+  ###
+  gitea-service-register-email-confirm:
+    default: 'true'
+    description: >-
+      Whether Gitea should send a confirmation email on email registration.
+    type: boolean
+
+  gitea-service-email-domain-allowlist:
+    default: '*.canonical.com'
+    description: Allowed email domains for Gitea registration.
+    type: string
+
+  gitea-service-allow-only-external-registration:
+    default: 'true'
+    description: >-
+      Whether to only allow Gitea registration via external providers.
+    type: boolean
+
+  gitea-service-enable-notify-mail:
+    default: 'true'
+    description: >-
+      Enable this to send e-mail to watchers of a repository when something
+      happens, like creating issues. Requires Mailer to be enabled.
+    type: boolean
+
+  gitea-service-enable-timetracking:
+    default: 'false'
+    description: Enable Gitea Timetracking feature.
+    type: boolean
+
+  gitea-service-show-registration-button:
+    default: 'false'
+    description: Show Gitea Registration Button
+    type: boolean
+
+  gitea-service-show-milestones-dashboard-page:
+    default: 'false'
+    description: >-
+      Enable this to show the milestones dashboard page - a view of all the
+      user's milestones.
+    type: boolean
+
+  ###
+  ### [repository]
+  ###
+  gitea-repository-root:
+    default: '/data/gitea-storage/repos'
+    description: >-
+      Root path for storing all repository data. A relative path is interpreted
+      as AppWorkPath/%(ROOT)s.
+    type: string
+
+  gitea-repository-max-creation-limit:
+    default: 20
+    description: >-
+      Global maximum creation limit of repositories per user, -1 means no limit.
+    type: int
+
+  gitea-repository-disable-http-git:
+    default: 'false'
+    description: >-
+      Disable the ability to interact with repositories over the HTTP protocol.
+    type: boolean
+
+  gitea-repository-disabled-repo-units:
+    default: 'repo.wiki'
+    description: >-
+      Comma separated list of globally disabled repo units. Allowed values:
+      [repo.issues, repo.ext_issues, repo.pulls, repo.wiki, repo.ext_wiki,
+      repo.projects, repo.packages, repo.actions]
+    type: string
+
+  gitea-repository-default-repo-units:
+    default: "repo.code,repo.releases,repo.issues,repo.pulls,repo.projects,\
+      repo.packages,repo.actions"
+    description: >-
+      Comma separated list of default new repo units. Allowed values:
+      [repo.code, repo.releases, repo.issues, repo.pulls, repo.wiki,
+      repo.projects, repo.packages, repo.actions]. Note: Code and Releases can
+      currently not be deactivated. If you specify default repo units you should
+      still list them for future compatibility. External wiki and issue tracker
+      can't be enabled by default as it requires additional settings. Disabled
+      repo units will not be added to new repositories regardless if it is in
+      the default list.
+    type: string
+
+  gitea-repository-allow-adoption-of-unadopted-repositories:
+    default: 'true'
+    description: >-
+      Allow non-admin users to adopt unadopted repositories
+    type: boolean
+
+  ###
+  ### [repository.upload]
+  ###
+  gitea-repository-upload-file-max-size:
+    default: 30
+    description: Max size of each file in megabytes.
+    type: int
+
+  ###
+  ### [repository.pull-request]
+  ###
+  gitea-repository-pull-request-default-merge-style:
+    default: 'rebase'
+    description: >-
+      Set default merge style for repository creating, valid options: merge,
+      rebase, rebase-merge, squash.
+    type: string
+
+  gitea-repository-pull-request-default-merge-message-official-approvers-only:
+    default: 'false'
+    description: >-
+      In default merge messages only include approvers who are officially
+      allowed to review.
+    type: boolean
+
+  gitea-repository-pull-request-approver-trailer-token:
+    default: 'Acked-by'
+    description: >-
+      In default merge message all approvers are annotated using git trailers
+      with a token of this value. The colon is inserted automatically.
+    type: string
+
+  gitea-repository-pull-request-append-attestation-trailers:
+    default: 'true'
+    description: Append attestation trailers on pull request merge.
+    type: boolean
+
+  ###
+  ### [repository.signing]
+  ###
+  gitea-repository-signing-default-trust-model:
+    default: 'committer'
+    description: >-
+      The default trust model used for verifying commits.
+
+      * collaborator: Trust signatures signed by keys of collaborators.
+      * committer: Trust signatures that match committers (This matches GitHub
+          and will force Gitea signed commits to have Gitea as the committer).
+      * collaboratorcommitter: Trust signatures signed by keys of collaborators
+          which match the committer.
+    type: string
+
+  ###
+  ### [ui]
+  ###
+  gitea-ui-themes:
+    default: 'auto,gitea,arc-green'
+    description: >-
+      All available themes. Allow users select personalized themes, regardless
+      of the value of DEFAULT_THEME.
+    type: string
+
+  gitea-ui-author:
+    default: 'Canonical Kernel Team'
+    description: Author meta tag of the homepage.
+    type: string
+
+  gitea-ui-description:
+    default: 'Canonical Kernel Team Code Review'
+    description: Description meta tag of the homepage.
+    type: string
+
+  gitea-ui-keywords:
+    default: 'go,git,self-hosted,gitea'
+    description: Keywords meta tag of the homepage.
+    type: string
+
+  ###
+  ### [admin]
+  ###
+  gitea-admin-disable-regular-org-creation:
+    default: 'true'
+    description: Disallow regular (non-admin) users from creating organizations.
+    type: boolean
+
+  ###
+  ### [openid]
+  ###
+  gitea-openid-enable-openid-signin:
+    default: 'true'
+    description: Allow authentication in via OpenID.
+    type: boolean
+
+  gitea-openid-enable-openid-signup:
+    default: 'true'
+    description: Allow registering via OpenID.
+    type: boolean
+
+  gitea-openid-whitelisted-uris:
+    default: 'login.ubuntu.com'
+    description: >-
+      If non-empty, list of POSIX regex patterns matching OpenID URI's to
+      permit.
+    type: string
+
+  ###
+  ### [webhook]
+  ###
+  gitea-webhook-allowed-host-list:
+    default: 'private,loopback'
+    description: >-
+      Webhook can only call allowed hosts for security reasons. Comma separated
+      list.
+
+      Built-in networks:
+          loopback: 127.0.0.0/8 for IPv4 and ::1/128 for IPv6, localhost is
+              included.
+          private: RFC 1918 (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) and
+              RFC 4193 (FC00::/7). Also called LAN/Intranet.
+          external: A valid non-private unicast IP, you can access all hosts on
+              public internet.
+          *: All hosts are allowed.
+      CIDR list: 1.2.3.0/8 for IPv4 and 2001:db8::/32 for IPv6
+      Wildcard hosts: *.mydomain.com, 192.168.100.*
+    type: string
+
+  ###
+  ### [mailer]
+  ###
+  gitea-mailer-enabled:
+    default: 'true'
+    description: Enable to use a mail service.
+    type: boolean
+
+  gitea-mailer-smtp-addr:
+    default: 'smtp-restricted.canonical.com'
+    description: >-
+      Mail server address. e.g. smtp.gmail.com. For smtp+unix, this should be a
+      path to a unix socket instead. Before 1.18, this was combined with
+      SMTP_PORT under the name HOST.
+    type: string
+
+  gitea-mailer-smtp-port:
+    default: 587
+    description: >-
+      Mail server port. If no protocol is specified, it will be inferred by this
+      setting. Common ports are listed below. Before 1.18, this was combined
+      with SMTP_ADDR under the name HOST.
+    type: int
+
+  gitea-mailer-from:
+    default: 'ckctreview <noreply+ckctreview-bot@canonical.com>'
+    description: >-
+      Mail from address, RFC 5322. This can be just an email address, or the
+      "Name" <email@example.com> format.
+    type: string
+
+  gitea-mailer-user:
+    default: 'kernel-ckctreview'
+    description: >-
+      Username of mailing user (usually the sender's e-mail address).
+    type: string
+
+  gitea-mailer-passwd:
+    description: >-
+      Password of mailing user. Use `your password` for quoting if you use
+      special characters in the password.
+    type: string
+
+  gitea-mailer-send-as-plain-text:
+    default: 'true'
+    description: Send mails only in plain text, without HTML alternative.
+    type: string
+
+  ###
+  ### [session]
+  ###
+  gitea-session-provider:
+    default: 'db'
+    description: >-
+      Session engine provider [memory, file, redis, redis-cluster, db, mysql,
+      couchbase, memcache, postgres]. Setting db will reuse the configuration in
+      [database]
+    type: string
+
+  ###
+  ### [picture]
+  ###
+  gitea-picture-avatar-upload-path:
+    default: '/data/gitea-storage/avatars'
+    description: Path to store user avatar image files.
+    type: string
+
+  gitea-picture-repository-avatar-upload-path:
+    default: '/data/gitea-storage/repo-avatars'
+    description: Path to store repository avatar image files.
+    type: string
+
+  ###
+  ### [attachment]
+  ###
+  gitea-attachment-enabled:
+    default: 'true'
+    description: Whether issue and pull request attachments are enabled.
+    type: boolean
+
+  gitea-attachment-path:
+    default: '/data/gitea-storage/attachments'
+    description: >-
+      Path to store attachments only available when STORAGE_TYPE is local,
+      relative paths will be resolved to ${AppDataPath}/${attachment.PATH}.
+    type: string
+
+  ###
+  ### [cron.repo_health_check]
+  ###
+  gitea-cron-repo-health-check-enabled:
+    default: 'false'
+    description: Whether regularly scheduled Gitea health check is enabled.
+    type: boolean
+
+  ###
+  ### [cron.update_checker]
+  ###
+  gitea-cron-update-checker-enabled:
+    default: 'false'
+    description: Whether regularly scheduled Gitea update check is enabled.
+    type: boolean
+
+  ###
+  ### [metrics]
+  ###
+  gitea-metrics-enabled:
+    default: 'true'
+    description: Enables /metrics endpoint for prometheus.
+    type: boolean
 
   gitea-metrics-token:
-    description: Config for metrics.TOKEN
+    description: >-
+      You need to specify the token, if you want to include in the authorization
+      the metrics. The same token need to be used in prometheus parameters
+      bearer_token or bearer_token_file.
     type: string
+
+  gitea-metrics-enabled-issue-by-label:
+    default: 'true'
+    description: >-
+      Enable issue by label metrics with format
+      gitea_issues_by_label{label="bug"} 2.
+    type: boolean
+
+  gitea-metrics-enabled-issue-by-repository:
+    default: 'true'
+    description: >-
+      Enable issue by repository metrics with format
+      gitea_issues_by_repository{repository="org/repo"} 5.
+    type: boolean
+
+  ###
+  ### [packages]
+  ###
+  gitea-packages-enabled:
+    default: 'true'
+    description: Enable/Disable package registry capabilities
+    type: boolean
+
+  gitea-packages-path:
+    default: '/data/gitea-storage/packages'
+    description: Path of Gitea package storage directory.
+    type: string
+
+  gitea-packages-limit-total-owner-count:
+    default: 30
+    description: >-
+      Maximum count of package versions a single owner can have
+      (-1 means no limits)
+    type: int
+
+  gitea-packages-limit-total-owner-size:
+    default: '20GiB'
+    description: >-
+      Maximum size of packages a single owner can use (-1 means no limits,
+      format 1000, 1 MB, 1 GiB)
+    type: string
+
+  ###
+  ### [storage]
+  ###
+  gitea-storage-storage-type:
+    default: 'local'
+    description: >-
+      Storage type, local for local disk or minio for s3 compatible object
+      storage service.
+    type: string
+
+  ###
+  ### [storage.repo-archive]
+  ###
+  gitea-storage-repo-archive-storage-type:
+    default: 'local'
+    description: >-
+      Storage type for repo archive, local for local disk or minio for s3
+      compatible object storage service or other name defined with [storage.xxx]
+    type: string
+
+  gitea-storage-repo-archive-path:
+    default: '/data/gitea-storage/repo-archive'
+    description: >-
+      Where to store archive files, only available when STORAGE_TYPE is local.
+    type: string
+
+  ###
+  ### [storage.packages]
+  ###
+  gitea-storage-packages-storage-type:
+    default: 'local'
+    description: >-
+      Storage type for packages, local for local disk or minio for s3 compatible
+      object storage service or other name defined with [storage.xxx]
+    type: string
+
+  gitea-storage-packages-path:
+    default: '/data/gitea-storage/repo-archive'
+    description: >-
+      Where to store archive files, only available when STORAGE_TYPE is local.
+    type: string
+
+  ###
+  ### [proxy]
+  ###
+  gitea-proxy-proxy-enabled:
+    default: 'true'
+    description: >-
+      Enable the proxy if true, all requests to external via HTTP will be
+      affected, if false, no proxy will be used even with environment
+      http_proxy/https_proxy
+    type: boolean
+
+  gitea-proxy-proxy-url:
+    default: 'http://squid.internal:3128/'
+    description: >-
+      Proxy server URL, support http://, https//, socks://, blank will follow
+      environment http_proxy/https_proxy
+    type: string
+
+  gitea-proxy-proxy-hosts:
+    default: "kernel.org, github.com, *.github.com, launchpad.net, \
+      *.launchpad.net"
+    description: >-
+      Comma separated list of host names requiring proxy. Glob patterns (*) are
+      accepted; use ** to match all hosts.
+    type: string
+
+  ###
+  ### [actions]
+  ###
+  gitea-actions-enabled:
+    default: 'true'
+    description: Enable/Disable actions capabilities
+    type: boolean
+
+  gitea-actions-default-actions-url:
+    default: 'self'
+    description: >-
+      Default platform to get action plugins, github for https://github.com,
+      self for the current Gitea instance.
+    type: string
+
+  ###
+  ### [storage.actions_log]
+  ###
+  gitea-storage-actions-log-storage-type:
+    default: 'local'
+    description: >-
+      Storage type, local for local disk or minio for s3 compatible object
+      storage service.
+    type: string
+
+  gitea-storage-actions-log-path:
+    default: '/data/gitea-storage/actions_log'
+    description: >-
+      Where to store actions logs, only available when STORAGE_TYPE is local.
+    type: string
+
+  ###
+  ### [storage.actions_artifacts]
+  ###
+  gitea-storage-actions-artifacts-storage-type:
+    default: 'local'
+    description: >-
+      Storage type, local for local disk or minio for s3 compatible object
+      storage service.
+    type: string
+
+  gitea-storage-actions-artifacts-path:
+    default: '/data/gitea-storage/actions_artifacts'
+    description: >-
+      Where to store actions artifacts, only available when STORAGE_TYPE is
+      local.
+    type: string
+
+...

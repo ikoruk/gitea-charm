@@ -20,7 +20,7 @@ from charms.operator_libs_linux.v0 import (
     systemd
 )
 
-from config import GiteaConfig, GiteaConfigError
+from config import GiteaConfig
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +103,9 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self._gitea_config.load()
         try:
             self._gitea_config.apply(self.config)
-        except GiteaConfigError as e:
-            self.unit.status = ops.BlockedStatus(e.args)
+        except Exception as e:
+            self.unit.status = ops.BlockedStatus(" ".join(e.args))
+            raise e
         self._gitea_config.save()
 
         # Restart Gitea with new config
@@ -112,7 +113,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             self._start_gitea()
 
         # Open TCP port for Gitea web access
-        self.unit.set_ports(self.config['gitea-server-port'])
+        self.unit.set_ports(self.config['gitea-server-http-port'])
 
         self.unit.status = ops.ActiveStatus()
 
@@ -120,8 +121,6 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         """Handle install event."""
         self.unit.status = ops.MaintenanceStatus("Begin install")
 
-        gitea_storage_dir = self.config['gitea-storage-dir']
-        
         # Fetch and verify Gitea
         BIN_URL = "https://dl.gitea.com/gitea/1.20.2/gitea-1.20.2-linux-amd64"
         BIN_NAME = os.path.basename(BIN_URL)
@@ -152,14 +151,11 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         subprocess.check_output(["mkdir", "-p", 
                                 "/var/lib/gitea/custom",
                                 "/var/lib/gitea/data",
-                                "/var/lib/gitea/log",
-                                gitea_storage_dir])
+                                "/var/lib/gitea/log"])
         subprocess.check_output(["chown", "-R", "git:git", 
-                                "/var/lib/gitea",
-                                gitea_storage_dir])
+                                "/var/lib/gitea"])
         subprocess.check_output(["chmod", "-R", "750", 
-                                "/var/lib/gitea",
-                                gitea_storage_dir])
+                                "/var/lib/gitea"])
         subprocess.check_output(["mkdir", "/etc/gitea"])
         subprocess.check_output(["chown", "root:git", "/etc/gitea"])
         subprocess.check_output(["chmod", "770", "/etc/gitea"])
