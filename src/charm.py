@@ -127,7 +127,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self.unit.status = ops.MaintenanceStatus("Fetch and verify Gitea binary")
         subprocess.check_output(["wget", BIN_URL])
         subprocess.check_output(["wget", f"{BIN_URL}.asc"])
-        subprocess.check_output(["gpg", "--keyserver", "keys.openpgp.org", 
+        subprocess.check_output(["gpg", "--keyserver", "keyserver.ubuntu.com",
                                         "--recv", "7C9E68152594688862D62AF62D9AE806EC1592E2"])
         subprocess.check_output(["gpg", "--verify", f"{BIN_NAME}.asc", BIN_NAME])
         subprocess.check_output(["chmod", "+x", BIN_NAME])
