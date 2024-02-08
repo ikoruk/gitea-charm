@@ -5,7 +5,8 @@ description: |
   This charm deploys it for the Canonical Kernel Team.
 
 title: Gitea for Canonical Kernel Team
-
+series:
+  - focal
 requires:
   database:
     interface: postgresql_client
