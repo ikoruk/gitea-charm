@@ -1,0 +1,31 @@
+series: jammy
+applications:
+  kteam-gitea:
+    charm: local:kteam-gitea-2
+    num_units: 1
+    to:
+    - "5"
+    expose: true
+    options:
+      # This needs to be configured by the charm at installation.
+      # The IP Address will change for each deployment.
+      # gitea-server-root-url: http://10.131.207.66
+    constraints: arch=amd64
+  postgresql:
+    charm: postgresql
+    channel: 14/stable
+    revision: 351
+    num_units: 1
+    to:
+    - "6"
+    constraints: arch=amd64
+    storage:
+      pgdata: rootfs,1,1024M
+machines:
+  "5":
+    constraints: arch=amd64 root-disk-source=volume
+  "6":
+    constraints: arch=amd64 root-disk-source=volume
+relations:
+- - postgresql:database
+  - kteam-gitea:database

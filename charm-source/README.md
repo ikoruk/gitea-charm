@@ -25,7 +25,7 @@ So far this charm:
 1. Build charm
 ```shell
 git clone https://kernel.ubuntu.com/gitea/tnt/gitea-charm.git
-cd gitea-charm
+cd gitea-charm/charm-source
 charmcraft pack
 ```
 
