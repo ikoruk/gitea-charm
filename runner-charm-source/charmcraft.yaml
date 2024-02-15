@@ -1,0 +1,21 @@
+# This file configures Charmcraft.
+# See https://juju.is/docs/sdk/charmcraft-config for guidance.
+
+name: kteam-gitea-runner
+title: Gitea Runner for Canonical Kernel Team
+summary: Gitea Runner for the Canonical Kernel Team
+description: |
+  Gitea act-runner is used to support Gitea Actions.
+  This charm deploys runners for the Canonical Kernel Team.
+
+# (Required)
+type: charm
+
+# (Required for 'charm' type)
+bases:
+  - build-on:
+    - name: ubuntu
+      channel: "22.04"
+    run-on:
+    - name: ubuntu
+      channel: "22.04"

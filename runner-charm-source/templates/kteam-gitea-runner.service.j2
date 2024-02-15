@@ -1,0 +1,15 @@
+[Unit]
+Description=Canonical Kernel Team Gitea Runner
+After=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/act_runner --config /etc/act_runner/config.yaml daemon
+ExecReload=/bin/kill -s HUP $MAINPID
+WorkingDirectory=/var/lib/act_runner
+TimeoutSec=0
+RestartSec=10
+Restart=always
+User=act_runner
+
+[Install]
+WantedBy=multi-user.target
