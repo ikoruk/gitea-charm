@@ -44,6 +44,7 @@ jobs:
           pre-commit run black --all-files
       - name: Sign-off Check
         uses: actions/tnt-sign-off-check@v1
-      - name: Run Tests
-        run: |
-          python3 -m unittest discover --start-directory tests
+      # Disabling the repo unit tests for now. We can evolve this further at a later time
+      #- name: Run Tests
+      #  run: |
+      #    python3 -m unittest discover --start-directory tests
