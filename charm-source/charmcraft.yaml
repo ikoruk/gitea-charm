@@ -1,6 +1,13 @@
 # This file configures Charmcraft.
 # See https://juju.is/docs/sdk/charmcraft-config for guidance.
 
+name: kteam-gitea
+title: Gitea for Canonical Kernel Team
+summary: Gitea for the Canonical Kernel Team
+description: |
+  Gitea is a devops platform with Git hosting, CI, and more.
+  This charm deploys it for the Canonical Kernel Team.
+
 # (Required)
 type: charm
 
@@ -12,3 +19,7 @@ bases:
     run-on:
     - name: ubuntu
       channel: "22.04"
+
+requires:
+  database:
+    interface: postgresql_client
