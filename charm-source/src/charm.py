@@ -79,7 +79,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
 
         # Install generated app.ini config
         if not event.username or not event.password or not event.endpoints:
-            self.unit.status = ops.ErrorStatus("Failed to configure database")
+            self.unit.status = ops.BlockedStatus("Failed to configure database")
             return
 
         self._gitea_config.load()
@@ -104,8 +104,10 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         try:
             self._gitea_config.apply(self.config)
         except Exception as e:
-            self.unit.status = ops.BlockedStatus(" ".join(e.args))
-            raise e
+            msg = " ".join(e.args)
+            logger.error(msg)
+            self.unit.status = ops.BlockedStatus(msg)
+            return
         self._gitea_config.save()
 
         # Restart Gitea with new config
