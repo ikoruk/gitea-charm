@@ -4,25 +4,17 @@
 
 """Charm for the Canonical Kernel Team's Gitea configuration."""
 
-from jinja2 import Template
+import logging
 import os
 import shutil
 import subprocess
-import logging
+
 import ops
-from typing import Optional
-
-from charms.data_platform_libs.v0.data_interfaces import (
-    DatabaseCreatedEvent,
-    DatabaseRequires,
-)
-from charms.operator_libs_linux.v0 import (
-    apt,
-    passwd,
-    systemd
-)
-
+from charms.data_platform_libs.v0.data_interfaces import (DatabaseCreatedEvent,
+                                                          DatabaseRequires)
+from charms.operator_libs_linux.v0 import apt, passwd, systemd
 from config import GiteaConfig
+from jinja2 import Template
 
 logger = logging.getLogger(__name__)
 
