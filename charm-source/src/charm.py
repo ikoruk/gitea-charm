@@ -6,6 +6,7 @@
 
 from jinja2 import Template
 import os
+import shutil
 import subprocess
 import logging
 import ops
@@ -17,6 +18,7 @@ from charms.data_platform_libs.v0.data_interfaces import (
 )
 from charms.operator_libs_linux.v0 import (
     apt,
+    passwd,
     systemd
 )
 
@@ -132,7 +134,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         subprocess.check_output(["gpg", "--keyserver", "keyserver.ubuntu.com",
                                         "--recv", "7C9E68152594688862D62AF62D9AE806EC1592E2"])
         subprocess.check_output(["gpg", "--verify", f"{BIN_NAME}.asc", BIN_NAME])
-        subprocess.check_output(["chmod", "+x", BIN_NAME])
+        os.chmod(BIN_NAME, 0o775)
 
         # Ensure Git is installed
         self.unit.status = ops.MaintenanceStatus("Install Git")
@@ -141,13 +143,8 @@ class KernelTeamGiteaCharm(ops.CharmBase):
 
         # Add 'git' user
         self.unit.status = ops.MaintenanceStatus("Configure system")
-        subprocess.check_output(["adduser", "--system", 
-                                "--shell", "/bin/bash",
-                                "--gecos", "Git Version Control",
-                                "--group",
-                                "--disabled-password",
-                                "--home", "/home/git",
-                                "git"])
+        passwd.add_user("git", None, system_user=True,
+                        home_dir="/home/git", create_home=True)
         
         # Create required directories
         subprocess.check_output(["mkdir", "-p", 
@@ -158,12 +155,12 @@ class KernelTeamGiteaCharm(ops.CharmBase):
                                 "/var/lib/gitea"])
         subprocess.check_output(["chmod", "-R", "750", 
                                 "/var/lib/gitea"])
-        subprocess.check_output(["mkdir", "/etc/gitea"])
-        subprocess.check_output(["chown", "root:git", "/etc/gitea"])
-        subprocess.check_output(["chmod", "770", "/etc/gitea"])
+        os.mkdir("/etc/gitea")
+        shutil.chown("/etc/gitea", "root", "git")
+        os.chmod("/etc/gitea", 0o770)
         
         # Install 'gitea' executable
-        subprocess.check_output(["cp", BIN_NAME, "/usr/local/bin/gitea"])
+        shutil.copy(BIN_NAME, "/usr/local/bin/gitea")
 
         # Configuration is installed in _on_database_created
         self._install_template("app.ini.j2", "/etc/gitea/app.ini", 0o660, "root:git")
