@@ -105,7 +105,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self._gitea_config.load()
         try:
             self._gitea_config.apply(self.config)
-        except Exception as e:
+        except ValueError as e:
             msg = " ".join(e.args)
             logger.error(msg)
             self.unit.status = ops.BlockedStatus(msg)
