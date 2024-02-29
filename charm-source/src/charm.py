@@ -74,7 +74,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         with open(install_path, "w+") as file:
             file.write(rendered)
         os.chmod(install_path, mode)
-        subprocess.check_output(["chown", owner, install_path])
+        subprocess.run(["chown", owner, install_path], check=True)
     
     def _on_database_created(self, event: DatabaseCreatedEvent):
         """Handle database create event."""
@@ -129,11 +129,13 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         BIN_URL = "https://dl.gitea.com/gitea/1.20.2/gitea-1.20.2-linux-amd64"
         BIN_NAME = os.path.basename(BIN_URL)
         self.unit.status = ops.MaintenanceStatus("Fetch and verify Gitea binary")
-        subprocess.check_output(["wget", BIN_URL])
-        subprocess.check_output(["wget", f"{BIN_URL}.asc"])
-        subprocess.check_output(["gpg", "--keyserver", "keyserver.ubuntu.com",
-                                        "--recv", "7C9E68152594688862D62AF62D9AE806EC1592E2"])
-        subprocess.check_output(["gpg", "--verify", f"{BIN_NAME}.asc", BIN_NAME])
+        subprocess.run(["wget", BIN_URL], check=True)
+        subprocess.run(["wget", f"{BIN_URL}.asc"], check=True)
+        subprocess.run(["gpg", "--keyserver", "keyserver.ubuntu.com",
+                        "--recv", "7C9E68152594688862D62AF62D9AE806EC1592E2"],
+                       check=True)
+        subprocess.run(["gpg", "--verify", f"{BIN_NAME}.asc", BIN_NAME],
+                       check=True)
         os.chmod(BIN_NAME, 0o775)
 
         # Ensure Git is installed
@@ -147,14 +149,12 @@ class KernelTeamGiteaCharm(ops.CharmBase):
                         home_dir="/home/git", create_home=True)
         
         # Create required directories
-        subprocess.check_output(["mkdir", "-p", 
-                                "/var/lib/gitea/custom",
-                                "/var/lib/gitea/data",
-                                "/var/lib/gitea/log"])
-        subprocess.check_output(["chown", "-R", "git:git", 
-                                "/var/lib/gitea"])
-        subprocess.check_output(["chmod", "-R", "750", 
-                                "/var/lib/gitea"])
+        subprocess.run(["mkdir", "-p",
+                        "/var/lib/gitea/custom",
+                        "/var/lib/gitea/data",
+                        "/var/lib/gitea/log"], check=True)
+        subprocess.run(["chown", "-R", "git:git", "/var/lib/gitea"], check=True)
+        subprocess.run(["chmod", "-R", "750", "/var/lib/gitea"], check=True)
         os.mkdir("/etc/gitea")
         shutil.chown("/etc/gitea", "root", "git")
         os.chmod("/etc/gitea", 0o770)
