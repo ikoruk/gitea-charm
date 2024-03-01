@@ -161,6 +161,10 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self._install_template("kteam-gitea.service.j2", 
                                "/etc/systemd/system/kteam-gitea.service",
                                0o644, "root:root")
+        if not systemd.daemon_reload():
+            raise RuntimeError("Systemd daemon reload failed")
+        if not systemd.service_resume("kteam-gitea"):
+            raise RuntimeError("Failed to enable kteam-gitea service")
 
         self.unit.status = ops.ActiveStatus()
 
