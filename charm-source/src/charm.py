@@ -100,10 +100,8 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self.unit.status = ops.ActiveStatus()
     
     def _on_config_changed(self, event: ops.ConfigChangedEvent):
-        restart = False
         if self._gitea_running():
             self._stop_gitea()
-            restart = True
 
         # Load, apply changes, and save config.
         self._gitea_config.load()
@@ -116,14 +114,14 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             return
         self._gitea_config.save()
 
-        # Restart Gitea with new config
-        if restart:
-            self._start_gitea()
-
         # Open TCP port for Gitea web access
         self.unit.set_ports(self.config['gitea-server-http-port'])
 
-        self.unit.status = ops.ActiveStatus()
+        # Restart Gitea with new config
+        if not self._start_gitea():
+            self.unit.status = ops.BlockedStatus("Failed to start Gitea after config change")
+        else:
+            self.unit.status = ops.ActiveStatus()
 
     def _on_install(self, event: ops.InstallEvent):
         """Handle install event."""
