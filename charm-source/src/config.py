@@ -25,9 +25,6 @@ class GiteaConfig():
 
         self._options = [
             # [DEFAULT]
-            DirectOption(self, 'gitea-app-name',
-                         'default', 'APP_NAME',
-                         DirectOption.apply_non_empty),
 
             # [server]
             DirectOption(self, 'gitea-server-http-port',
@@ -53,171 +50,45 @@ class GiteaConfig():
             # [database]
 
             # [security]
-            DirectOption(self, 'gitea-security-password-hash-algo',
-                         'security', 'PASSWORD_HASH_ALGO',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_PW_HASH_ALGOS),
 
             # [oauth2]
-            DirectOption(self, 'gitea-oauth2-enable',
-                         'oauth2', 'ENABLE',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [log]
-            DirectOption(self, 'gitea-log-mode',
-                         'log', 'MODE',
-                         DirectOption.apply_multi_allowed,
-                         ['console', 'file', 'conn'],
-                         allow_empty=False),
             DirectOption(self, 'gitea-log-level',
                          'log', 'LEVEL',
                          DirectOption.apply_allowed,
                          GiteaConfig._GITEA_LOG_LEVELS,
                          allow_empty=False),
-            DirectOption(self, 'gitea-log-logger-router-mode',
-                         'log', 'logger.router.MODE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_LOG_LEVELS),
 
             # [git.timeout]
-            DirectOption(self, 'gitea-git-timeout-default',
-                         'git.timeout', 'DEFAULT',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-git-timeout-clone',
-                         'git.timeout', 'CLONE',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-git-timeout-pull',
-                         'git.timeout', 'PULL',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-git-timeout-gc',
-                         'git.timeout', 'GC',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [service]
-            DirectOption(self, 'gitea-service-register-email-confirm',
-                         'service', 'REGISTER_EMAIL_CONFIRM',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-email-domain-allowlist',
-                         'service', 'EMAIL_DOMAIN_ALLOWLIST',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-allow-only-external-registration',
-                         'service', 'ALLOW_ONLY_EXTERNAL_REGISTRATION',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-enable-notify-mail',
-                         'service', 'ENABLE_NOTIFY_MAIL',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-enable-timetracking',
-                         'service', 'ENABLE_TIMETRACKING',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-show-registration-button',
-                         'service', 'SHOW_REGISTRATION_BUTTON',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-service-show-milestones-dashboard-page',
-                         'service', 'SHOW_MILESTONES_DASHBOARD_PAGE',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [repository]
-            PathOption  (self, 'gitea-repository-root',
-                         'repository', 'ROOT'),
             DirectOption(self, 'gitea-repository-max-creation-limit',
                          'repository', 'MAX_CREATION_LIMIT',
                          DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-repository-disable-http-git',
-                         'repository', 'DISABLE_HTTP_GIT',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-repository-disabled-repo-units',
-                         'repository', 'DISABLED_REPO_UNITS',
-                         DirectOption.apply_multi_allowed,
-                         GiteaConfig._GITEA_REPO_UNITS),
-            DirectOption(self, 'gitea-repository-default-repo-units',
-                         'repository', 'DEFAULT_REPO_UNITS',
-                         DirectOption.apply_multi_allowed,
-                         GiteaConfig._GITEA_REPO_UNITS),
-            DirectOption(self, 'gitea-repository-allow-adoption-of-unadopted-repositories',
-                         'repository', 'ALLOW_ADOPTION_OF_UNADOPTED_REPOSITORIES',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [repository.upload]
-            DirectOption(self, 'gitea-repository-upload-file-max-size',
-                         'repository.upload', 'UPLOAD_FILE_MAX_SIZE',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [repository.pull-request]
-            DirectOption(self, 'gitea-repository-pull-request-default-merge-style',
-                         'repository.pull-request', 'DEFAULT_MERGE_STYLE',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-repository-pull-request-default-merge-message-official-approvers-only',
-                         'repository.pull-request', 'DEFAULT_MERGE_MESSAGE_OFFICIAL_APPROVERS_ONLY',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-repository-pull-request-approver-trailer-token',
-                         'repository.pull-request', 'APPROVER_TRAILER_TOKEN',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-repository-pull-request-append-attestation-trailers',
-                         'repository.pull-request', 'APPEND_ATTESTATION_TRAILERS',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [repository.signing]
-            DirectOption(self, 'gitea-repository-signing-default-trust-model',
-                         'repository.signing', 'DEFAULT_TRUST_MODEL',
-                         DirectOption.apply_allowed,
-                         ['collaborator', 'committer', 'collaboratorcommitter']),
 
             # [ui]
-            DirectOption(self, 'gitea-ui-themes',
-                         'ui', 'THEMES',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-ui-author',
-                         'ui', 'AUTHOR',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-ui-description',
-                         'ui', 'DESCRIPTION',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-ui-keywords',
-                         'ui', 'KEYWORDS',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [admin]
-            DirectOption(self, 'gitea-admin-disable-regular-org-creation',
-                         'admin', 'DISABLE_REGULAR_ORG_CREATION',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [openid]
-            DirectOption(self, 'gitea-openid-enable-openid-signin',
-                         'openid', 'ENABLE_OPENID_SIGNIN',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-openid-enable-openid-signup',
-                         'openid', 'ENABLE_OPENID_SIGNUP',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-openid-whitelisted-uris',
-                         'openid', 'WHITELISTED_URIS',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [webhook]
-            DirectOption(self, 'gitea-webhook-allowed-host-list',
-                         'webhook', 'ALLOWED_HOST_LIST',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [mailer]
-            DirectOption(self, 'gitea-mailer-enabled',
-                         'mailer', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-mailer-smtp-addr',
-                         'mailer', 'SMTP_ADDR',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-mailer-smtp-port',
-                         'mailer', 'SMTP_PORT',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-mailer-from',
-                         'mailer', 'FROM',
-                         DirectOption.apply_non_empty_or_remove),
             DirectOption(self, 'gitea-mailer-user',
                          'mailer', 'USER',
                          DirectOption.apply_non_empty_or_remove),
             DirectOption(self, 'gitea-mailer-passwd',
                          'mailer', 'PASSWD',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-mailer-send-as-plain-text',
-                         'mailer', 'SEND_AS_PLAIN_TEXT',
                          DirectOption.apply_non_empty_or_remove),
 
             # [session]
@@ -226,77 +97,25 @@ class GiteaConfig():
                          DirectOption.apply_non_empty_or_remove),
 
             # [picture]
-            PathOption  (self, 'gitea-picture-avatar-upload-path',
-                         'picture', 'AVATAR_UPLOAD_PATH'),
-            PathOption  (self, 'gitea-picture-repository-avatar-upload-path',
-                         'picture', 'REPOSITORY_AVATAR_UPLOAD_PATH'),
 
             # [attachment]
-            DirectOption(self, 'gitea-attachment-enabled',
-                         'attachment', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
-            PathOption  (self, 'gitea-attachment-path',
-                         'attachment', 'PATH'),
 
             # [cron.repo_health_check]
-            DirectOption(self, 'gitea-cron-repo-health-check-enabled',
-                         'cron.repo_health_check', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [cron.update_checker]
-            DirectOption(self, 'gitea-cron-update-checker-enabled',
-                         'cron.update_checker', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [metrics]
-            DirectOption(self, 'gitea-metrics-enabled',
-                         'metrics', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
             DirectOption(self, 'gitea-metrics-token',
                          'metrics', 'TOKEN',
                          DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-metrics-enabled-issue-by-label',
-                         'metrics', 'ENABLED_ISSUE_BY_LABEL',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-metrics-enabled-issue-by-repository',
-                         'metrics', 'ENABLED_ISSUE_BY_REPOSITORY',
-                         DirectOption.apply_non_empty_or_remove),
 
             # [packages]
-            DirectOption(self, 'gitea-packages-enabled',
-                         'packages', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
-            PathOption  (self, 'gitea-packages-path',
-                         'packages', 'PATH'),
-            DirectOption(self, 'gitea-packages-limit-total-owner-count',
-                         'packages', 'LIMIT_TOTAL_OWNER_COUNT',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-packages-limit-total-owner-size',
-                         'packages', 'LIMIT_TOTAL_OWNER_SIZE',
-                         DirectOption.apply_allowed,
-                         [r"[0-9]+\s?(|(K|M|G|T|P)i?B)$"]),
 
             # [storage]
-            DirectOption(self, 'gitea-storage-storage-type',
-                         'storage', 'STORAGE_TYPE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_STORAGE_TYPES),
 
             # [storage.repo-archive]
-            DirectOption(self, 'gitea-storage-repo-archive-storage-type',
-                         'storage.repo-archive', 'STORAGE_TYPE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_STORAGE_TYPES),
-            PathOption  (self, 'gitea-storage-repo-archive-path',
-                         'storage.repo-archive', 'PATH'),
 
             # [storage.packages]
-            DirectOption(self, 'gitea-storage-packages-storage-type',
-                         'storage.packages', 'STORAGE_TYPE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_STORAGE_TYPES),
-            PathOption  (self, 'gitea-storage-packages-path',
-                         'storage.packages', 'PATH'),
 
             # [proxy]
             DirectOption(self, 'gitea-proxy-proxy-enabled',
@@ -310,29 +129,10 @@ class GiteaConfig():
                          DirectOption.apply_non_empty_or_remove),
 
             # [actions]
-            DirectOption(self, 'gitea-actions-enabled',
-                         'actions', 'ENABLED',
-                         DirectOption.apply_non_empty_or_remove),
-            DirectOption(self, 'gitea-actions-default-actions-url',
-                         'actions', 'DEFAULT_ACTIONS_URL',
-                         DirectOption.apply_allowed,
-                         ['self', 'github']),
 
             # [storage.actions_log]
-            DirectOption(self, 'gitea-storage-actions-log-storage-type',
-                         'storage.actions_log', 'STORAGE_TYPE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_STORAGE_TYPES),
-            PathOption  (self, 'gitea-storage-actions-log-path',
-                         'storage.actions_log', 'PATH'),
 
             # [storage.actions_artifacts]
-            DirectOption(self, 'gitea-storage-actions-artifacts-storage-type',
-                         'storage.actions_artifacts', 'STORAGE_TYPE',
-                         DirectOption.apply_allowed,
-                         GiteaConfig._GITEA_STORAGE_TYPES),
-            PathOption  (self, 'gitea-storage-actions-artifacts-path',
-                         'storage.actions_artifacts', 'PATH'),
 
         ]
 
