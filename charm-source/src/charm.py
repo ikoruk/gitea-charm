@@ -88,16 +88,19 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             self.unit.status = ops.BlockedStatus("Failed to configure database")
             return
 
+        if self._gitea_running():
+            self._stop_gitea()
+
         self._gitea_config.load()
         self._gitea_config.set_db_config(event.username, event.password,
                                          event.endpoints)
         self._gitea_config.save()
 
         # Start Gitea with new DB configuration
-        # TODO: handle failure
-        self._start_gitea()
-
-        self.unit.status = ops.ActiveStatus()
+        if not self._start_gitea():
+            ops.BlockedStatus("Failed to start Gitea after database config change")
+        else:
+            self.unit.status = ops.ActiveStatus()
     
     def _on_config_changed(self, event: ops.ConfigChangedEvent):
         if self._gitea_running():
