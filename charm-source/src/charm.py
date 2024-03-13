@@ -38,14 +38,26 @@ class KernelTeamGiteaCharm(ops.CharmBase):
     def _start_gitea(self):
         """Start Gitea service"""
         logger.info("Starting Gitea service...")
-        systemd.service_start("kteam-gitea")
-        logger.info("Gitea service started.")
+        status = systemd.service_start("kteam-gitea")
+
+        if status:
+            logger.info("Gitea service started.")
+        else:
+            logger.info("Failed to start Gitea service.")
+
+        return status
 
     def _stop_gitea(self):
         """Stop Gitea service"""
         logger.info("Stopping Gitea service...")
-        systemd.service_stop("kteam-gitea")
-        logger.info("Gitea service stopped.")
+        status = systemd.service_stop("kteam-gitea")
+
+        if status:
+            logger.info("Gitea service stopped.")
+        else:
+            logger.info("Failed to stop Gitea service.")
+
+        return status
 
     def _gitea_running(self):
         return systemd.service_running("kteam-gitea")
