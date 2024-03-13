@@ -144,9 +144,14 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         subprocess.run(["mkdir", "-p",
                         "/var/lib/gitea/custom",
                         "/var/lib/gitea/data",
-                        "/var/lib/gitea/log"], check=True)
-        subprocess.run(["chown", "-R", "git:git", "/var/lib/gitea"], check=True)
-        subprocess.run(["chmod", "-R", "750", "/var/lib/gitea"], check=True)
+                        "/var/lib/gitea/log",
+                        "/data/gitea-storage"], check=True)
+        subprocess.run(["chown", "-R", "git:git",
+                        "/var/lib/gitea",
+                        "/data/gitea-storage"], check=True)
+        subprocess.run(["chmod", "-R", "750",
+                        "/var/lib/gitea",
+                        "/data/gitea-storage"], check=True)
         os.mkdir("/etc/gitea")
         shutil.chown("/etc/gitea", "root", "git")
         os.chmod("/etc/gitea", 0o770)
