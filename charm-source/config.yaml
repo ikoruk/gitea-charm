@@ -191,7 +191,7 @@ options:
 
   gitea-proxy-proxy-hosts:
     default: "kernel.org, github.com, *.github.com, launchpad.net, \
-      *.launchpad.net"
+      *.launchpad.net, dl.gitea.com"
     description: >-
       Comma separated list of host names requiring proxy. Glob patterns (*) are
       accepted; use ** to match all hosts.
