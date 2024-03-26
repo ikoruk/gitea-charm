@@ -1,31 +1,43 @@
 series: jammy
 applications:
   kteam-gitea:
-    charm: local:kteam-gitea-2
+    charm: local:kteam-gitea-0
     num_units: 1
     to:
-    - "5"
-    expose: true
-    options:
-      # This needs to be configured by the charm at installation.
-      # The IP Address will change for each deployment.
-      # gitea-server-root-url: http://10.131.207.66
+    - "2"
     constraints: arch=amd64
   postgresql:
     charm: postgresql
     channel: 14/stable
-    revision: 351
+    revision: 363
     num_units: 1
     to:
-    - "6"
+    - "0"
     constraints: arch=amd64
     storage:
       pgdata: rootfs,1,1024M
+  s3-integrator:
+    charm: s3-integrator
+    channel: stable
+    revision: 13
+    num_units: 1
+    to:
+    - "1"
+    options:
+      bucket: kerneltestbucket
+      endpoint: https://s3.us-west-2.amazonaws.com
+      path: /postgresql-test
+      region: us-west-2
+    constraints: arch=amd64
 machines:
-  "5":
-    constraints: arch=amd64 root-disk-source=volume
-  "6":
-    constraints: arch=amd64 root-disk-source=volume
+  "0":
+    constraints: arch=amd64
+  "1":
+    constraints: arch=amd64
+  "2":
+    constraints: arch=amd64
 relations:
+- - s3-integrator:s3-credentials
+  - postgresql:s3-parameters
 - - postgresql:database
   - kteam-gitea:database
