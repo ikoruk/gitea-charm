@@ -23,3 +23,9 @@ bases:
 requires:
   database:
     interface: postgresql_client
+
+resources:
+  gitea-binary:
+    type: file
+    filename: gitea
+    description: The Gitea Go Binary to be used for this deployment
