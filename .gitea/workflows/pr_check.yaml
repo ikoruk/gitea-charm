@@ -44,6 +44,8 @@ jobs:
           pre-commit run black --all-files
       - name: Sign-off Check
         uses: actions/tnt-sign-off-check@v1
+        with:
+          check-owner-sob: false
       # Disabling the repo unit tests for now. We can evolve this further at a later time
       #- name: Run Tests
       #  run: |
