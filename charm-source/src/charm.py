@@ -4,6 +4,7 @@
 
 """Charm for the Canonical Kernel Team's Gitea configuration."""
 
+import sys
 import logging
 import os
 import shutil
@@ -18,6 +19,21 @@ from jinja2 import Template
 
 logger = logging.getLogger(__name__)
 
+class ResourceBaseException(ops.ModelError):
+    status_type = ops.BlockedStatus
+    status_message = "Resource error"
+
+    def __init__(self, msg):
+        self.msg = msg
+        self.status = self.status_type(
+            "{}: {}".format(self.status_message, self.msg)
+        )
+
+class MissingResourceError(ResourceBaseException):
+    pass
+
+class InstallResourceError(ResourceBaseException):
+    pass
 
 class KernelTeamGiteaCharm(ops.CharmBase):
     """Charm for the Canonical Kernel Team's Gitea configuration."""
@@ -29,7 +45,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self.framework.observe(self.on.config_changed, self._on_config_changed)
 
         # Object for write-only Gitea configuration
-        self._gitea_config = GiteaConfig('/etc/gitea/app.ini')
+        self._gitea_config = GiteaConfig('/etc/gitea/conf/app.ini')
 
         # Requires PostgreSQL DB
         self.database = DatabaseRequires(self, relation_name="database", database_name="giteadb")
@@ -79,7 +95,39 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             file.write(rendered)
         os.chmod(install_path, mode)
         subprocess.run(["chown", owner, install_path], check=True)
-    
+
+    def _gitea_resource(self):
+        '''
+         Ensure to provide the gitea binary resource
+         juju deploy ./kteam-gitea --resource gitea-binary=/path_to_gitea_binary
+         This method should only check if the gitea resource is present.
+         '''
+        try:
+            resource_path = self.model.resources.fetch("gitea-binary")
+        except ops.ModelError as e:
+            logger.error(e)
+            return
+        except NameError as e:
+            logger.error(e)
+            return
+        return resource_path
+
+    def _gitea_install_resource(self):
+        '''
+        # Install 'gitea' executable
+        '''
+        resource_path = self.model.resources.fetch("gitea-binary")
+
+        try:
+            os.chmod(resource_path, 0o775)
+            shutil.copy(resource_path, "/usr/local/bin/gitea")
+        # This should not trigger an exception, but anything can happen.
+        # If it does, that's really bad
+        except Exception as e:
+            raise
+
+        return True
+
     def _on_database_created(self, event: DatabaseCreatedEvent):
         """Handle database create event."""
 
@@ -98,13 +146,25 @@ class KernelTeamGiteaCharm(ops.CharmBase):
 
         # Start Gitea with new DB configuration
         if not self._start_gitea():
-            ops.BlockedStatus("Failed to start Gitea after database config change")
+            self.unit.status = ops.BlockedStatus("Failed to start Gitea after database config change")
         else:
-            self.unit.status = ops.ActiveStatus()
+            self.unit.status = ops.ActiveStatus("Gitea Running")
     
     def _on_config_changed(self, event: ops.ConfigChangedEvent):
+        """ Do these things on a model config changes"""
+        # Regardless of what is done, gitea should be stopped.
         if self._gitea_running():
             self._stop_gitea()
+
+        # Check the loaded gitea binary resource, update it.
+        # This should probably only update if the hash sums differ
+        if not self._gitea_resource():
+            self.unit.status = ops.BlockedStatus(
+                "Something went wrong when claiming resource 'gitea-binary; "
+                "run `juju debug-log` for more info'"
+            )
+            return
+
 
         # Load, apply changes, and save config.
         self._gitea_config.load()
@@ -115,6 +175,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             logger.error(msg)
             self.unit.status = ops.BlockedStatus(msg)
             return
+
         self._gitea_config.save()
 
         # Open TCP port for Gitea web access
@@ -124,24 +185,57 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         if not self._start_gitea():
             self.unit.status = ops.BlockedStatus("Failed to start Gitea after config change")
         else:
-            self.unit.status = ops.ActiveStatus()
+            self.unit.status = ops.ActiveStatus("Gitea Running")
+
+    def _gitea_required_directories(self) -> bool:
+        """ These are the required directories for Gitea to install correctly
+        """
+        # Create required directories
+        try:
+            subprocess.run(["mkdir", "-p",
+                            "/var/lib/gitea/custom",
+                            "/var/lib/gitea/data",
+                            "/var/lib/gitea/log",
+                            "/data/gitea-storage",
+                            "/etc/gitea/conf"], check=True)
+
+            subprocess.run(["chown", "-R", "git:git",
+                            "/var/lib/gitea/custom",
+                            "/var/lib/gitea/data",
+                            "/var/lib/gitea/log",
+                            "/data/gitea-storage"], check=True)
+
+            subprocess.run(["chmod", "-R", "750",
+                            "/var/lib/gitea/custom",
+                            "/var/lib/gitea/data",
+                            "/var/lib/gitea/log",
+                            "/data/gitea-storage"], check=True)
+
+            subprocess.run(["chown", "-R", "root:git",
+                            "/etc/gitea/conf"], check=True)
+
+            subprocess.run(["chmod", "-R", "770",
+                            "/etc/gitea/conf"], check=True)
+
+        except CalledProcessError as e:
+            logger.error(e)
+            return
+        return True
 
     def _on_install(self, event: ops.InstallEvent):
         """Handle install event."""
         self.unit.status = ops.MaintenanceStatus("Begin install")
 
-        # Fetch and verify Gitea
-        BIN_URL = "https://dl.gitea.com/gitea/1.20.2/gitea-1.20.2-linux-amd64"
-        BIN_NAME = os.path.basename(BIN_URL)
-        self.unit.status = ops.MaintenanceStatus("Fetch and verify Gitea binary")
-        subprocess.run(["wget", BIN_URL], check=True)
-        subprocess.run(["wget", f"{BIN_URL}.asc"], check=True)
-        subprocess.run(["gpg", "--keyserver", "keyserver.ubuntu.com",
-                        "--recv", "7C9E68152594688862D62AF62D9AE806EC1592E2"],
-                       check=True)
-        subprocess.run(["gpg", "--verify", f"{BIN_NAME}.asc", BIN_NAME],
-                       check=True)
-        os.chmod(BIN_NAME, 0o775)
+        # These need to be broken into separate private methods so that, if a
+        # failure occurs, it will pause juju correctly.
+
+        # Call the gitea resource, check to see if it exists, install it.
+        # If not, We want to HARD STOP here.
+        if not self._gitea_resource():
+            raise MissingResourceError("Failure to Locate Resource")
+
+        if not self._gitea_install_resource():
+            raise InstallResourceError("Failure to Install Resource")
 
         # Ensure Git is installed
         self.unit.status = ops.MaintenanceStatus("Install Git")
@@ -153,27 +247,17 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         passwd.add_user("git", None, system_user=True,
                         home_dir="/home/git", create_home=True)
         
-        # Create required directories
-        subprocess.run(["mkdir", "-p",
-                        "/var/lib/gitea/custom",
-                        "/var/lib/gitea/data",
-                        "/var/lib/gitea/log",
-                        "/data/gitea-storage"], check=True)
-        subprocess.run(["chown", "-R", "git:git",
-                        "/var/lib/gitea",
-                        "/data/gitea-storage"], check=True)
-        subprocess.run(["chmod", "-R", "750",
-                        "/var/lib/gitea",
-                        "/data/gitea-storage"], check=True)
-        os.mkdir("/etc/gitea")
-        shutil.chown("/etc/gitea", "root", "git")
-        os.chmod("/etc/gitea", 0o770)
-        
-        # Install 'gitea' executable
-        shutil.copy(BIN_NAME, "/usr/local/bin/gitea")
+        if not self._gitea_required_directories():
+            self.unit.status = ops.BlockedStatus("Error Creating Required Charm Directories")
+            raise RuntimeError("Systemd daemon reload failed")
 
+        #################################################################
+        # IMPORTANT
+        # These remaining steps need to be wrapped in try/excepts
+        # and set ops.BlockedStatus if they fail
+        #################################################################
         # Configuration is installed in _on_database_created
-        self._install_template("app.ini.j2", "/etc/gitea/app.ini", 0o660, "root:git")
+        self._install_template("app.ini.j2", "/etc/gitea/conf/app.ini", 0o660, "root:git")
 
         # Create systemd service, disabled until database available.
         self._install_template("kteam-gitea.service.j2", 
