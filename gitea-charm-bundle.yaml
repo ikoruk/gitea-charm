@@ -1,7 +1,13 @@
-series: jammy
+default-base: ubuntu@22.04/stable
 applications:
   kteam-gitea:
     charm: local:kteam-gitea-0
+    num_units: 1
+    to:
+    - "0"
+    constraints: arch=amd64
+  kteam-gitea-runner:
+    charm: local:kteam-gitea-runner-0
     num_units: 1
     to:
     - "2"
@@ -9,35 +15,17 @@ applications:
   postgresql:
     charm: postgresql
     channel: 14/stable
-    revision: 363
-    num_units: 1
-    to:
-    - "0"
-    constraints: arch=amd64
-    storage:
-      pgdata: rootfs,1,1024M
-  s3-integrator:
-    charm: s3-integrator
-    channel: stable
-    revision: 13
+    revision: 429
     num_units: 1
     to:
     - "1"
-    options:
-      bucket: kerneltestbucket
-      endpoint: https://s3.us-west-2.amazonaws.com
-      path: /postgresql-test
-      region: us-west-2
     constraints: arch=amd64
+    storage:
+      pgdata: rootfs,1,1024M
 machines:
-  "0":
-    constraints: arch=amd64
-  "1":
-    constraints: arch=amd64
-  "2":
-    constraints: arch=amd64
+  "0": {}
+  "1": {}
+  "2": {}
 relations:
-- - s3-integrator:s3-credentials
-  - postgresql:s3-parameters
 - - postgresql:database
   - kteam-gitea:database
