@@ -16,12 +16,14 @@ More information: https://charmhub.io/gitea-charm
 Deploys Gitea for the Canonical Kernel Team.
 
 So far this charm:
-- Installs Gitea 1.20.2 binary from dl.gitea.com
+- Installs Gitea 1.22.0 RC1 binary from a local location via JuJu Resource
 - Installs required directories and systemd service.
 - Installs the configuration from KERNTT-691 with database values set as required to work with the postgresql charm.
 
-## Building and deploying
+## Prerequisite
+Build Gitea Locally or Download it and rename the binary to "gitea"
 
+## Building and deploying
 1. Build charm
 Private URL: git clone https://kernel.ubuntu.com/gitea/tnt/gitea-charm.git
 Public URL: git clone https://kernel.ubuntu.com/gitea/tnt-public/gitea-charm.git
@@ -34,7 +36,7 @@ charmcraft pack
 2. Deploy charm
 ```shell
 juju add-model default
-juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm
+juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm --resource gitea-binary=<path_go_gitea_binary>
 ```
 
 3. Integrate postgresql
