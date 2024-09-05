@@ -22,26 +22,51 @@ So far this charm:
 
 ## Building and deploying
 
-1. Build charm
+1. Clone charm repo
 Private URL: git clone https://kernel.ubuntu.com/gitea/tnt/gitea-charm.git
 Public URL: git clone https://kernel.ubuntu.com/gitea/tnt-public/gitea-charm.git
 ```shell
-git clone $URL
-cd gitea-charm/charm-source
+git clone $URL $REPO_DIR
+```
+
+2. Build main charm
+```shell
+cd $REPO_DIR/charm-source
 charmcraft pack
 ```
 
-2. Deploy charm
+3. Build runner
 ```shell
-juju add-model default
-juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm
+cd $REPO_DIR/runner-charm-source
+charmcraft pack
 ```
 
-3. Integrate postgresql
+4. Obtain Gitea binary
+This can be done by building it yourself or downloading it elsewhere.
+The binary should be placed with the path `$REPO_DIR/gitea`.
+
+5. Create model
 ```shell
-juju deploy postgresql
-juju integrate postgresql kteam-gitea
+juju add-model default
 ```
+
+6. Deploy charms
+
+    a. Deploy charm
+    ```shell
+    juju deploy $REPO_DIR/charm-source/kteam-gitea_ubuntu-22.04-amd64.charm --resource gitea-binary=$REPO_DIR/gitea
+    ```
+
+    b. Deploy runner
+    ```shell
+    juju deploy $REPO_DIR/runner-charm-source/kteam-gitea-runner_ubuntu-22.04-amd64.charm
+    ```
+
+    c. Integrate postgresql
+    ```shell
+    juju deploy postgresql
+    juju integrate postgresql kteam-gitea
+    ```
 
 ## Other resources
 
