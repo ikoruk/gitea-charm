@@ -50,7 +50,7 @@ The binary should be placed with the path `$REPO_DIR/gitea`.
 juju add-model default
 ```
 
-6. Deploy charms
+6. (Option 1) Deploy charms individually
 
     a. Deploy charm
     ```shell
@@ -66,6 +66,16 @@ juju add-model default
     ```shell
     juju deploy postgresql
     juju integrate postgresql kteam-gitea
+    ```
+
+6. (Option 2) Deploy using bundle
+
+    a. Deploy bundle
+    ```shell
+    cd $REPO_DIR
+    mv charm-source/kteam-gitea_ubuntu-22.04-amd64.charm kteam-gitea
+    mv runner-charm-source/kteam-gitea-runner_ubuntu-22.04-amd64.charm kteam-gitea-runner
+    juju deploy ./gitea-charm-bundle.yaml
     ```
 
 ## Other resources
