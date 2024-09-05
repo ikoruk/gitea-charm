@@ -6,6 +6,8 @@ applications:
     to:
     - "0"
     constraints: arch=amd64
+    resources:
+      gitea-binary: "./gitea"
   kteam-gitea-runner:
     charm: local:kteam-gitea-runner-0
     num_units: 1
