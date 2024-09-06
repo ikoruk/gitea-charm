@@ -43,6 +43,7 @@ class KernelTeamGiteaCharm(ops.CharmBase):
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
+        self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
 
         # Object for write-only Gitea configuration
         self._gitea_config = GiteaConfig('/etc/gitea/conf/app.ini')
@@ -221,6 +222,31 @@ class KernelTeamGiteaCharm(ops.CharmBase):
             logger.error(e)
             return
         return True
+
+    def _on_upgrade_charm(self, event: ops.UpgradeCharmEvent):
+        """Handle upgrade event.
+           An Upgrade Event simply upgrades the resource
+        """
+
+        self.unit.status = ops.MaintenanceStatus("Upgrading Charm")
+
+        # First Stop Gitea
+        if self._gitea_running():
+            self._stop_gitea()
+
+        # Call the gitea resource, check to see if it exists, install it.
+        # If not, We want to HARD STOP here.
+        if not self._gitea_resource():
+            raise MissingResourceError("Failure to Locate Resource")
+
+        if not self._gitea_install_resource():
+            raise InstallResourceError("Failure to Install Resource")
+
+        # Start Gitea
+        if not self._start_gitea():
+            self.unit.status = ops.BlockedStatus("Failed to start Gitea after upgrade")
+        else:
+            self.unit.status = ops.ActiveStatus("Gitea Running")
 
     def _on_install(self, event: ops.InstallEvent):
         """Handle install event."""
