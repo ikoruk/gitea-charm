@@ -28,7 +28,7 @@ charmcraft pack
 
 2. Deploy charm
 ```shell
-juju deploy ./kteam-gitea-runner_ubuntu-22.04-amd64.charm
+juju deploy ./kteam-gitea-runner_ubuntu-22.04-amd64.charm --resource runner-binary=<path_to_act_runner_binary>
 ```
 
 3. Generate runner token via Gitea Web UI

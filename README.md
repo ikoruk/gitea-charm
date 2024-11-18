@@ -59,7 +59,7 @@ juju add-model default
 
     b. Deploy runner
     ```shell
-    juju deploy $REPO_DIR/runner-charm-source/kteam-gitea-runner_ubuntu-22.04-amd64.charm
+    juju deploy $REPO_DIR/runner-charm-source/kteam-gitea-runner_ubuntu-22.04-amd64.charm --resource gitea-binary=$REPO_DIR/act_runner
     ```
 
     c. Integrate postgresql

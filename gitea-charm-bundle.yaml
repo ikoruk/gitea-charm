@@ -14,6 +14,8 @@ applications:
     to:
     - "2"
     constraints: arch=amd64
+    resources:
+      runner-binary: "./act_runner"
   postgresql:
     charm: postgresql
     channel: 14/stable

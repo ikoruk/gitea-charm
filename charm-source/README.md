@@ -36,7 +36,7 @@ charmcraft pack
 2. Deploy charm
 ```shell
 juju add-model default
-juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm --resource gitea-binary=<path_go_gitea_binary>
+juju deploy ./kteam-gitea_ubuntu-22.04-amd64.charm --resource gitea-binary=<path_to_gitea_binary>
 ```
 
 3. Integrate postgresql

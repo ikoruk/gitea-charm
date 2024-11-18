@@ -7,6 +7,7 @@
 import logging
 import os
 import subprocess
+import shutil
 
 from jinja2 import Template
 import ops
@@ -18,6 +19,22 @@ from charms.operator_libs_linux.v0 import (
 )
 
 logger = logging.getLogger(__name__)
+
+class ResourceBaseException(ops.ModelError):
+    status_type = ops.BlockedStatus
+    status_message = "Resource error"
+
+    def __init__(self, msg):
+        self.msg = msg
+        self.status = self.status_type(
+            "{}: {}".format(self.status_message, self.msg)
+        )
+
+class MissingResourceError(ResourceBaseException):
+    pass
+
+class InstallResourceError(ResourceBaseException):
+    pass
 
 class GiteaRunnerCharm(ops.CharmBase):
     """Charm the application."""
@@ -58,7 +75,13 @@ class GiteaRunnerCharm(ops.CharmBase):
     def _on_config_changed(self, event: ops.ConfigChangedEvent):
         self._stop_runner()
 
-        # update any configs here
+        # Check for act_runner resource
+        if not self._runner_resource():
+            self.unit.status = ops.BlockedStatus(
+                "Something went wrong when claiming resource 'act-runner'; "
+                "run `juju debug-log` for more info"
+            )
+            return
 
         self._start_runner()
         self.unit.status = ops.ActiveStatus()
@@ -69,19 +92,48 @@ class GiteaRunnerCharm(ops.CharmBase):
         else:
             self._error("Failed to start runner service. Has a runner token been registered?")
 
+    def _runner_resource(self):
+        '''
+        Ensure to provide the act runner resource
+        juju deploy ./kteam-gitea-runner --resource runner-binary=/path_to_act_runner_binary
+        This method should only check if the act runner resource is present.
+        '''
+        try:
+            resource_path = self.model.resources.fetch("runner-binary")
+        except ops.ModelError as e:
+            logger.error(e)
+            return
+        except NameError as e:
+            logger.error(e)
+            return
+        return resource_path
+    
+    def _runner_install_resource(self):
+        '''
+        # Install 'act_runner' executable
+        '''
+        resource_path = self.model.resources.fetch("runner-binary")
+
+        try:
+            os.chmod(resource_path, 0o775)
+            shutil.copy(resource_path, "/usr/local/bin/act_runner")
+        # This should not trigger an exception, but anything can happen.
+        # If it does, that's really bad
+        except Exception as e:
+            raise
+
+        return True
+
     def _on_install(self, event: ops.InstallEvent):
         self.unit.status = ops.MaintenanceStatus("Begin install")
 
-        # Fetch and verify the Gitea runner
-        ZIP_URL = "https://gitea.com/gitea/act_runner/releases/download/v0.2.6/act_runner-0.2.6-linux-amd64.xz"
-        ZIP_NAME = os.path.basename(ZIP_URL)
-        BIN_NAME = ZIP_NAME[:-len(".xz")]
-        self.unit.status = ops.MaintenanceStatus("Fetch and verify Gitea runner")
-        subprocess.run(["wget", ZIP_URL], check=True)
-        subprocess.run(["wget", f"{ZIP_URL}.sha256"], check=True)
-        subprocess.run(["sha256sum", "-c", f"{ZIP_NAME}.sha256"], check=True)
-        subprocess.run(["xz", "-d", ZIP_NAME], check=True)
-        subprocess.run(["chmod", "+x", BIN_NAME], check=True)
+        # Call the runner resource, check to see if it exists, install it.
+        # If not, We want to HARD STOP here.
+        if not self._runner_resource():
+            raise MissingResourceError("Failure to Locate Resource")
+
+        if not self._runner_install_resource():
+            raise InstallResourceError("Failure to Install Resource")
 
         # Ensure Docker is installed and running
         self.unit.status = ops.MaintenanceStatus("Install Docker")
@@ -101,11 +153,8 @@ class GiteaRunnerCharm(ops.CharmBase):
                         "/var/lib/act_runner",
                         "/etc/act_runner"], check=True)
 
-        # Install Gitea executable
-        self.unit.status = ops.MaintenanceStatus("Configuring system")
-        subprocess.run(["cp", BIN_NAME, "/usr/local/bin/act_runner"], check=True)
-
         # Generate config.yaml
+        self.unit.status = ops.MaintenanceStatus("Configuring system")
         subprocess.run("/usr/local/bin/act_runner generate-config > /etc/act_runner/config.yaml",
                        check=True, shell=True)
 

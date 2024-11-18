@@ -19,3 +19,9 @@ bases:
     run-on:
     - name: ubuntu
       channel: "22.04"
+
+resources:
+  runner-binary:
+    type: file
+    filename: act_runner
+    description: The Act Runner Binary to be used for this deployment
