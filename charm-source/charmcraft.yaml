@@ -29,3 +29,10 @@ resources:
     type: file
     filename: gitea
     description: The Gitea Go Binary to be used for this deployment
+
+storage:
+  gitea-storage:
+      type: filesystem
+      description: Somewhere to cache files locally.
+      location: /data/gitea-storage
+      minimum-size: 10G
