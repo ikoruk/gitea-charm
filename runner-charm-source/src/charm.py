@@ -48,6 +48,8 @@ class GiteaRunnerCharm(ops.CharmBase):
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.update_status, self._on_update_status)
+        self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
+        self.framework.observe(self.on.register_action, self._on_register_action)
 
     def _start_runner(self):
         """Start runner service."""
@@ -92,6 +94,25 @@ class GiteaRunnerCharm(ops.CharmBase):
         else:
             self._error("Failed to start runner service. Has a runner token been registered?")
 
+    def _on_upgrade_charm(self, event: ops.UpgradeCharmEvent):
+        # First Stop runner
+        if self._is_running():
+            self._stop_runner()
+
+        # Call the runner resource, check to see if it exists, install it.
+        # If not, We want to HARD STOP here.
+        if not self._runner_resource():
+            raise MissingResourceError("Failure to Locate Resource")
+
+        if not self._runner_install_resource():
+            raise InstallResourceError("Failure to Install Resource")
+
+        # Start runner
+        if not self._start_runner():
+            self.unit.status = ops.BlockedStatus("Failed to start runner after upgrade")
+        else:
+            self.unit.status = ops.ActiveStatus("Runner Running")
+
     def _runner_resource(self):
         '''
         Ensure to provide the act runner resource
@@ -107,7 +128,7 @@ class GiteaRunnerCharm(ops.CharmBase):
             logger.error(e)
             return
         return resource_path
-    
+
     def _runner_install_resource(self):
         '''
         # Install 'act_runner' executable
@@ -182,6 +203,52 @@ class GiteaRunnerCharm(ops.CharmBase):
     def _error(self, msg):
         logger.error(msg)
         self.unit.status = ops.BlockedStatus(msg)
+
+    def _on_register_action(self, event: ops.ActionEvent):
+        """Handle register action."""
+
+        # First Stop runner
+        if self._is_running():
+            self._stop_runner()
+
+        self.unit.status = ops.MaintenanceStatus("Registering runner")
+
+        os.chdir("/var/lib/act_runner")
+        try:
+            # run as act_runner
+            subprocess.run(
+                [
+                    "sudo",
+                    "-u",
+                    "act_runner",
+                    "/usr/local/bin/act_runner",
+                    "--config",
+                    "/etc/act_runner/config.yaml",
+                    "register",
+                    "--no-interactive",
+                    "--instance",
+                    event.params["gitea-instance-url"],
+                    "--token",
+                    event.params["gitea-instance-token"],
+                    "--name",
+                    event.params["gitea-runner-name"],
+                    "--labels",
+                    event.params["gitea-runner-labels"],
+                ],
+                check=True,
+                capture_output=True,
+            )
+            event.set_results({"result": "success"})
+        except subprocess.CalledProcessError as e:
+            event.fail(
+                f"Failed to register runner. Output was:\n{e.stderr}"
+            )
+
+        # Start Runner
+        if not self._start_runner():
+            self.unit.status = ops.BlockedStatus("Failed to start runner after upgrade")
+        else:
+            self.unit.status = ops.ActiveStatus("Runner Running")
 
 if __name__ == "__main__":  # pragma: nocover
     ops.main(GiteaRunnerCharm)  # type: ignore

@@ -25,3 +25,30 @@ resources:
     type: file
     filename: act_runner
     description: The Act Runner Binary to be used for this deployment
+
+actions:
+  register:
+    description: Register the runner with a running Gitea instance.
+    params:
+      gitea-instance-url:
+        default: ''
+        description: Config for server instance URL.
+        type: string
+      gitea-instance-token:
+        default: ''
+        description: Config for server instance token to register the runner.
+        type: string
+      gitea-runner-name:
+        default: ''
+        description: Config for runner name.
+        type: string
+      gitea-runner-labels:
+        default: ''
+        description: Config for runner labels.
+        type: string
+    required:
+    - gitea-instance-url
+    - gitea-instance-token
+    - gitea-runner-name
+    - gitea-runner-labels
+    additionalProperties: false

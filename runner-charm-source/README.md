@@ -33,14 +33,9 @@ juju deploy ./kteam-gitea-runner_ubuntu-22.04-amd64.charm --resource runner-bina
 
 3. Generate runner token via Gitea Web UI
 
-4. Manually register act_runner token
+4. Register the act_runner token:
 ```shell
-juju ssh $MACHINE
-sudo su act_runner
-cd /var/lib/act_runner
-/usr/local/bin/act_runner --config /etc/act_runner/config.yaml register
-exit
-sudo systemctl restart kteam-gitea-runner
+juju run $MACHINE register gitea-instance-url=$INSTANCE_URL gitea-instance-token=$INSTANCE_TOKEN gitea-runner-name=$RUNNER_NAME gitea-runner-labels=$RUNNER_LABELS
 ```
 
 ## Other resources
