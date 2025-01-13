@@ -125,6 +125,30 @@ options:
       special characters in the password.
     type: string
 
+  gitea-mailer-from:
+    default: 'ckctreview <noreply+ckctreview-bot@canonical.com>'
+    description: >-
+      From address of mailing user.
+    type: string
+
+  gitea-mailer-smtp-addr:
+    default: 'smtp-restricted.canonical.com'
+    description: >-
+      SMTP server host.
+    type: string
+
+  gitea-mailer-smtp-port:
+    default: 587
+    description: >-
+      SMTP server port.
+    type: int
+
+  gitea-mailer-protocol:
+    default: ''
+    description: >-
+      SMTP protocol. One of [smtp, smtps, smtp+starttls, smtp+unix, sendmail, dummy]. Empty for default.
+    type: string
+
   ###
   ### [session]
   ###

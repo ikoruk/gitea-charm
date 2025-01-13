@@ -90,6 +90,18 @@ class GiteaConfig():
             DirectOption(self, 'gitea-mailer-passwd',
                          'mailer', 'PASSWD',
                          DirectOption.apply_non_empty_or_remove),
+            DirectOption(self, 'gitea-mailer-from',
+                         'mailer', 'FROM',
+                         DirectOption.apply_non_empty_or_remove),
+            DirectOption(self, 'gitea-mailer-smtp-addr',
+                         'mailer', 'SMTP_ADDR',
+                         DirectOption.apply_non_empty_or_remove),
+            DirectOption(self, 'gitea-mailer-smtp-port',
+                         'mailer', 'SMTP_PORT',
+                         DirectOption.apply_non_empty_or_remove),
+            DirectOption(self, 'gitea-mailer-protocol',
+                         'mailer', 'PROTOCOL',
+                         DirectOption.apply_non_empty_or_remove),
 
             # [session]
             DirectOption(self, 'gitea-session-provider',
